@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Sourav Business Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{min-height:100vh;background:#07070d;font-family:Georgia,serif;color:#e8e8e8;padding-bottom:80px;}
+
+/* HEADER */
+.hdr{background:linear-gradient(135deg,#1a0a2e,#0d1117,#0a1628);border-bottom:1px solid #1e293b;padding:24px 16px 20px;text-align:center;position:relative;overflow:hidden;}
+.hdr::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(139,92,246,.09) 0%,transparent 60%),radial-gradient(ellipse at 70% 50%,rgba(59,130,246,.09) 0%,transparent 60%);pointer-events:none;}
+.hdr-sub{font-size:12px;color:#64748b;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;font-family:monospace;}
+.hdr h1{font-size:clamp(18px,5vw,28px);font-weight:bold;background:linear-gradient(135deg,#F59E0B,#EF4444,#8B5CF6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;}
+.hdr-date{font-size:12px;color:#475569;margin-bottom:14px;}
+
+/* CAPITAL BANNER in header */
+.cap-banner{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.cap-pill{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:50px;padding:8px 16px;text-align:center;display:flex;align-items:center;gap:10px;}
+.cap-pill-lbl{font-size:10px;color:#64748b;letter-spacing:1px;font-family:monospace;text-transform:uppercase;}
+.cap-pill-val{font-size:16px;font-weight:bold;}
+.cap-pill-pct{font-size:11px;font-family:monospace;padding:2px 8px;border-radius:20px;}
+.pct-up{background:rgba(16,185,129,.15);color:#10b981;}
+.pct-dn{background:rgba(239,68,68,.15);color:#ef4444;}
+.pct-nt{background:rgba(100,116,139,.15);color:#64748b;}
+
+/* CHECKLIST STATS */
+.stats-row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.sbox{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px 16px;text-align:center;min-width:90px;}
+.sbox.cdone{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.3);}
+.sbox.cpend{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);}
+.snum{font-size:24px;font-weight:bold;}
+.slbl{font-size:10px;color:#64748b;letter-spacing:1px;font-family:monospace;margin-top:2px;}
+.pbar-wrap{margin:0 auto;max-width:380px;height:4px;background:#1e293b;border-radius:4px;overflow:hidden;}
+.pbar-fill{height:100%;width:0%;background:linear-gradient(90deg,#F59E0B,#EF4444,#8B5CF6);border-radius:4px;transition:width .4s;}
+.ready-banner{background:linear-gradient(135deg,#064e3b,#065f46);border:1px solid #10b981;color:#6ee7b7;text-align:center;padding:10px 16px;font-size:13px;letter-spacing:1px;display:none;}
+
+/* TABS */
+.tab-outer{max-width:680px;margin:0 auto;padding:14px 14px 0;}
+.tab-nav{display:flex;gap:5px;}
+.tab-btn{flex:1;padding:9px 4px;border-radius:10px 10px 0 0;border:1px solid rgba(255,255,255,.07);border-bottom:none;background:rgba(255,255,255,.02);color:#64748b;cursor:pointer;font-size:11px;text-align:center;font-family:monospace;letter-spacing:.5px;transition:all .2s;}
+.tab-btn.active{background:rgba(139,92,246,.15);color:#a78bfa;border-color:rgba(139,92,246,.3);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+.content{max-width:680px;margin:0 auto;padding:18px 14px 0;}
+
+/* SECTION CARDS */
+.sec-card{margin-bottom:16px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:14px;overflow:hidden;transition:border-color .3s;}
+.sec-hdr{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center;}
+.sec-title{font-size:15px;font-weight:bold;}
+.sec-sub{font-size:11px;color:#475569;margin-top:2px;}
+.sec-badge{font-size:12px;font-family:monospace;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:3px 10px;border-radius:7px;color:#64748b;white-space:nowrap;}
+.sec-badge.done{color:#10B981;background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.3);}
+.items{padding:6px 0;}
+.item{display:flex;align-items:flex-start;gap:12px;padding:11px 18px;cursor:pointer;border-left:3px solid transparent;transition:background .2s,border-color .2s;user-select:none;}
+.item:hover{background:rgba(255,255,255,.02);}
+.item.checked{border-left-color:var(--sc);}
+.chkbox{width:20px;height:20px;min-width:20px;border-radius:6px;border:2px solid #334155;background:transparent;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .2s;flex-shrink:0;}
+.chkbox.checked{border-color:var(--sc);background:var(--sc);}
+.chkbox svg{display:none;}
+.chkbox.checked svg{display:block;}
+.item-txt{font-size:13px;line-height:1.5;color:#cbd5e1;transition:all .2s;}
+.item.checked .item-txt{color:#64748b;text-decoration:line-through;}
+.crit-tag{font-size:9px;letter-spacing:1px;color:#EF4444;font-family:monospace;text-transform:uppercase;display:block;margin-top:2px;}
+
+/* MANTRA */
+.mantra{background:linear-gradient(135deg,rgba(139,92,246,.1),rgba(59,130,246,.1));border:1px solid rgba(139,92,246,.3);border-radius:14px;padding:20px 18px;text-align:center;margin-bottom:16px;}
+.mantra-lbl{font-size:10px;color:#8B5CF6;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;font-family:monospace;}
+.mantra-txt{font-size:15px;line-height:1.8;color:#c4b5fd;font-style:italic;}
+.mantra-txt strong{color:#a78bfa;font-style:normal;}
+.mantra-ft{margin-top:12px;font-size:12px;color:#475569;}
+.reset-wrap{text-align:center;margin-top:4px;}
+.reset-btn{background:transparent;border:1px solid #334155;color:#64748b;padding:9px 26px;border-radius:9px;cursor:pointer;font-size:12px;letter-spacing:1px;font-family:monospace;transition:all .2s;}
+.reset-btn:hover{border-color:#EF4444;color:#EF4444;}
+
+/* ===== CAPITAL SECTION ===== */
+.cap-section{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:20px;margin-bottom:16px;}
+.cap-section-title{font-size:14px;font-weight:bold;color:#a78bfa;margin-bottom:16px;font-family:monospace;letter-spacing:1px;}
+.cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.cap-box{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px;text-align:center;}
+.cap-box-lbl{font-size:10px;color:#64748b;letter-spacing:1px;font-family:monospace;text-transform:uppercase;margin-bottom:6px;}
+.cap-box-val{font-size:20px;font-weight:bold;}
+.cap-box-sub{font-size:11px;color:#64748b;margin-top:4px;font-family:monospace;}
+.cap-progress-section{margin-bottom:14px;}
+.cap-prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.cap-prog-lbl{font-size:11px;color:#94a3b8;font-family:monospace;}
+.cap-prog-pct{font-size:12px;font-weight:bold;font-family:monospace;}
+.cap-prog-bar{height:8px;background:#1e293b;border-radius:4px;overflow:hidden;margin-bottom:14px;}
+.cap-prog-fill{height:100%;border-radius:4px;transition:width .5s;}
+.cap-set-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.cap-inp{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:9px;color:#e2e8f0;padding:9px 13px;font-size:14px;font-family:Georgia,serif;outline:none;flex:1;min-width:140px;transition:border-color .2s;}
+.cap-inp:focus{border-color:rgba(139,92,246,.5);}
+.cap-set-btn{background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;color:#fff;padding:9px 18px;border-radius:9px;cursor:pointer;font-size:13px;font-family:Georgia,serif;transition:opacity .2s;white-space:nowrap;}
+.cap-set-btn:hover{opacity:.88;}
+.cap-history{margin-top:16px;}
+.cap-hist-title{font-size:11px;color:#64748b;font-family:monospace;letter-spacing:1px;margin-bottom:10px;}
+.cap-hist-chart{display:flex;align-items:flex-end;gap:3px;height:70px;overflow-x:auto;}
+.chc-bar{min-width:20px;flex:1;border-radius:3px 3px 0 0;position:relative;cursor:pointer;transition:opacity .2s;}
+.chc-bar:hover{opacity:.8;}
+
+/* ===== CALENDAR ===== */
+.cal-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.cal-nav-btn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:#a78bfa;padding:7px 15px;border-radius:8px;cursor:pointer;font-size:16px;transition:all .2s;}
+.cal-nav-btn:hover{background:rgba(139,92,246,.15);}
+.cal-title{font-size:17px;font-weight:bold;color:#e2e8f0;}
+.cal-legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b;font-family:monospace;}
+.leg-dot{width:9px;height:9px;border-radius:50%;}
+.cal-gh{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
+.cal-dlbl{text-align:center;font-size:10px;color:#475569;font-family:monospace;padding:3px 0;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-cell{aspect-ratio:1;border-radius:9px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;position:relative;}
+.cal-cell:hover:not(.empty):not(.future){border-color:rgba(139,92,246,.5);background:rgba(139,92,246,.08);}
+.cal-cell.empty{background:transparent;border-color:transparent;cursor:default;pointer-events:none;}
+.cal-cell.future{opacity:.3;cursor:default;pointer-events:none;}
+.cal-cell.today{border-color:#F59E0B !important;box-shadow:0 0 0 1px #F59E0B25;}
+.cal-num{font-weight:bold;color:#94a3b8;font-size:clamp(10px,2vw,13px);line-height:1;}
+.cal-cell.today .cal-num{color:#F59E0B;}
+.cal-icon{font-size:11px;margin-top:1px;line-height:1;}
+.cal-cell.sg{background:rgba(16,185,129,.18);border-color:rgba(16,185,129,.5);}
+.cal-cell.sg .cal-num{color:#6ee7b7;}
+.cal-cell.sr{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.5);}
+.cal-cell.sr .cal-num{color:#fca5a5;}
+.cal-cell.sy{background:rgba(245,158,11,.18);border-color:rgba(245,158,11,.5);}
+.cal-cell.sy .cal-num{color:#fcd34d;}
+.cal-cell.sn{background:rgba(100,116,139,.12);border-color:rgba(100,116,139,.3);}
+.cal-cell.sn .cal-num{color:#94a3b8;}
+.cal-sum{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+.csbox{flex:1;min-width:70px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:12px 8px;text-align:center;}
+.csnum{font-size:19px;font-weight:bold;}
+.cslbl{font-size:9px;color:#64748b;font-family:monospace;margin-top:3px;}
+
+/* ===== P&L TRACKER ===== */
+.pnl-overview{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.pnl-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:14px;text-align:center;}
+.pnl-card-num{font-size:20px;font-weight:bold;margin-bottom:3px;}
+.pnl-card-lbl{font-size:9px;color:#64748b;font-family:monospace;letter-spacing:1px;}
+.pnl-chart-wrap{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:16px;margin-bottom:16px;}
+.pnl-chart-title{font-size:12px;color:#94a3b8;font-family:monospace;margin-bottom:12px;}
+.chart-bars{display:flex;align-items:flex-end;gap:4px;height:90px;overflow-x:auto;padding-bottom:2px;}
+.bar-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:26px;flex:1;cursor:pointer;}
+.bar-col{width:100%;border-radius:3px 3px 0 0;transition:all .3s;min-height:3px;}
+.bar-lbl{font-size:8px;color:#475569;font-family:monospace;white-space:nowrap;}
+.bar-val{font-size:8px;font-family:monospace;font-weight:bold;}
+.pnl-log{margin-top:4px;}
+.pnl-log-row{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;transition:background .2s;}
+.pnl-log-row:hover{background:rgba(255,255,255,.03);}
+.pnl-log-row:last-child{border-bottom:none;}
+.plr-date{font-size:12px;color:#94a3b8;}
+.plr-status{font-size:10px;font-family:monospace;}
+.plr-right{text-align:right;}
+.plr-amount{font-size:14px;font-weight:bold;font-family:monospace;}
+.plr-cap{font-size:10px;color:#64748b;font-family:monospace;margin-top:2px;}
+.plr-amount.p{color:#10b981;} .plr-amount.l{color:#ef4444;} .plr-amount.z{color:#64748b;}
+.streak-box{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.streak-num-big{font-size:28px;font-weight:bold;color:#F59E0B;}
+.streak-info{font-size:12px;color:#fcd34d;}
+.streak-sub{font-size:11px;color:#64748b;margin-top:2px;}
+
+/* ===== JOURNAL ===== */
+.jfilter{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.jfbtn{padding:6px 11px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:#64748b;cursor:pointer;font-size:11px;font-family:monospace;transition:all .2s;}
+.jfbtn.active{background:rgba(139,92,246,.15);border-color:rgba(139,92,246,.4);color:#a78bfa;}
+.jentry{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:13px;padding:16px 18px;margin-bottom:10px;cursor:pointer;transition:all .2s;border-left:4px solid transparent;}
+.jentry:hover{background:rgba(255,255,255,.04);}
+.jentry.g{border-left-color:#10b981;} .jentry.r{border-left-color:#ef4444;} .jentry.y{border-left-color:#f59e0b;} .jentry.n{border-left-color:#64748b;}
+.je-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+.je-date{font-size:13px;font-weight:bold;color:#e2e8f0;}
+.je-badge{font-size:10px;font-family:monospace;padding:3px 9px;border-radius:6px;}
+.je-badge.g{background:rgba(16,185,129,.15);color:#6ee7b7;} .je-badge.r{background:rgba(239,68,68,.15);color:#fca5a5;} .je-badge.y{background:rgba(245,158,11,.15);color:#fcd34d;} .je-badge.n{background:rgba(100,116,139,.15);color:#94a3b8;}
+.je-pnl{font-size:14px;font-weight:bold;margin-bottom:4px;}
+.je-pnl.p{color:#10b981;} .je-pnl.l{color:#ef4444;} .je-pnl.z{color:#64748b;}
+.je-cap{font-size:11px;color:#64748b;font-family:monospace;margin-bottom:5px;}
+.je-prev{font-size:12px;color:#475569;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.no-entries{text-align:center;color:#334155;font-size:13px;padding:50px 16px;font-family:monospace;}
+
+/* ===== MODAL ===== */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:999;align-items:center;justify-content:center;padding:14px;}
+.modal-bg.open{display:flex;}
+.modal{background:#0c0e16;border:1px solid rgba(139,92,246,.35);border-radius:18px;width:100%;max-width:500px;max-height:92vh;overflow-y:auto;padding:26px 20px;position:relative;}
+.modal-x{position:absolute;top:13px;right:13px;background:rgba(255,255,255,.06);border:none;color:#94a3b8;width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.modal-x:hover{background:rgba(239,68,68,.2);color:#ef4444;}
+.modal-ttl{font-size:16px;font-weight:bold;color:#a78bfa;margin-bottom:3px;}
+.modal-stl{font-size:11px;color:#475569;font-family:monospace;margin-bottom:20px;}
+.m-sec{margin-bottom:16px;}
+.m-lbl{font-size:10px;color:#64748b;letter-spacing:1px;text-transform:uppercase;font-family:monospace;margin-bottom:7px;display:block;}
+.sbrow{display:flex;gap:6px;flex-wrap:wrap;}
+.sbtn{flex:1;min-width:65px;padding:8px 5px;border-radius:9px;border:2px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:#94a3b8;cursor:pointer;font-size:11px;text-align:center;transition:all .2s;font-family:monospace;line-height:1.4;}
+.sbtn:hover{border-color:rgba(139,92,246,.4);}
+.sbtn.sg{background:rgba(16,185,129,.2);border-color:#10b981;color:#6ee7b7;} .sbtn.sr{background:rgba(239,68,68,.2);border-color:#ef4444;color:#fca5a5;} .sbtn.sy{background:rgba(245,158,11,.2);border-color:#f59e0b;color:#fcd34d;} .sbtn.sn{background:rgba(100,116,139,.2);border-color:#64748b;color:#94a3b8;}
+.m-inp,.m-ta{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:#e2e8f0;padding:9px 12px;font-size:13px;font-family:Georgia,serif;outline:none;transition:border-color .2s;}
+.m-inp:focus,.m-ta:focus{border-color:rgba(139,92,246,.5);}
+.m-ta{resize:vertical;min-height:70px;}
+.save-btn{width:100%;padding:12px;border-radius:11px;border:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-size:14px;cursor:pointer;font-family:Georgia,serif;margin-top:6px;transition:opacity .2s;}
+.save-btn:hover{opacity:.9;}
+.del-btn{width:100%;padding:9px;border-radius:11px;border:1px solid rgba(239,68,68,.3);background:transparent;color:#ef4444;font-size:12px;cursor:pointer;font-family:monospace;margin-top:7px;transition:all .2s;display:none;}
+.del-btn:hover{background:rgba(239,68,68,.1);}
+.modal-cap-info{background:rgba(139,92,246,.07);border:1px solid rgba(139,92,246,.2);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:#a78bfa;font-family:monospace;text-align:center;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-sub">Sourav Susmita Sen ·Options Seller</div>
+  <h1>Business Dashboard</h1>
+  <div class="hdr-date" id="dateDisplay"></div>
+
+  <!-- CAPITAL PILLS -->
+  <div class="cap-banner">
+    <div class="cap-pill">
+      <div><div class="cap-pill-lbl">Base Capital</div><div class="cap-pill-val" id="hdrBase" style="color:#8B5CF6;">₹—</div></div>
+    </div>
+    <div class="cap-pill">
+      <div><div class="cap-pill-lbl">Current Capital</div><div class="cap-pill-val" id="hdrCurrent" style="color:#10b981;">₹—</div></div>
+      <div class="cap-pill-pct pct-nt" id="hdrPct">0%</div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="sbox cpend" id="critBox">
+      <div class="snum" id="critNum" style="color:#EF4444">0/0</div>
+      <div class="slbl">CRITICAL</div>
+    </div>
+    <div class="sbox" id="progBox">
+      <div class="snum" id="progNum" style="color:#F59E0B">0%</div>
+      <div class="slbl">COMPLETE</div>
+    </div>
+    <div class="sbox">
+      <div class="snum" id="totNum" style="color:#3B82F6">0/0</div>
+      <div class="slbl">CHECKED</div>
+    </div>
+  </div>
+  <div class="pbar-wrap"><div class="pbar-fill" id="pbarFill"></div></div>
+</div>
+<div class="ready-banner" id="readyBanner">✅ ALL CRITICAL RULES CHECKED — You are ready to trade, Sourav!</div>
+
+<!-- TABS -->
+<div class="tab-outer">
+  <div class="tab-nav">
+    <div class="tab-btn active" onclick="switchTab('checklist',this)">☑️ CHECK</div>
+    <div class="tab-btn" onclick="switchTab('capital',this)">🏦 CAPITAL</div>
+    <div class="tab-btn" onclick="switchTab('calendar',this)">📅 CAL</div>
+    <div class="tab-btn" onclick="switchTab('pnl',this)">💰 P&amp;L</div>
+    <div class="tab-btn" onclick="switchTab('journal',this)">📓 LOG</div>
+  </div>
+</div>
+
+<!-- TAB: CHECKLIST -->
+<div class="tab-panel active" id="tab-checklist">
+  <div class="content" id="clContent"></div>
+</div>
+
+<!-- TAB: CAPITAL -->
+<div class="tab-panel" id="tab-capital">
+  <div class="content">
+
+    <!-- Set Base Capital -->
+    <div class="cap-section">
+      <div class="cap-section-title">🏦 CAPITAL SETTINGS</div>
+      <div style="font-size:12px;color:#64748b;margin-bottom:14px;line-height:1.6;">Set your starting base capital. Current capital is automatically calculated as Base + Total P&L from all your logged trading days.</div>
+      <div class="cap-set-row">
+        <input class="cap-inp" id="baseCapInput" type="number" placeholder="Enter base capital e.g. 300000"/>
+        <button class="cap-set-btn" onclick="setBaseCap()">💾 Set Capital</button>
+      </div>
+      <div style="font-size:11px;color:#475569;margin-top:8px;font-family:monospace;">Default: ₹3,00,000 (your planned starting capital)</div>
+    </div>
+
+    <!-- Capital Overview -->
+    <div class="cap-section" id="capOverview"></div>
+
+    <!-- Capital Growth Chart -->
+    <div class="cap-section">
+      <div class="cap-section-title">📈 CAPITAL CURVE</div>
+      <div style="font-size:11px;color:#64748b;margin-bottom:14px;font-family:monospace;">Running capital after each trading day</div>
+      <div class="cap-hist-chart" id="capCurveChart"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;">
+        <span style="font-size:10px;color:#475569;font-family:monospace;" id="capCurveStart"></span>
+        <span style="font-size:10px;color:#475569;font-family:monospace;" id="capCurveEnd"></span>
+      </div>
+    </div>
+
+    <!-- Monthly Breakdown -->
+    <div class="cap-section">
+      <div class="cap-section-title">📅 MONTHLY BREAKDOWN</div>
+      <div id="monthlyBreakdown"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TAB: CALENDAR -->
+<div class="tab-panel" id="tab-calendar">
+  <div class="content">
+    <div class="cal-top">
+      <button class="cal-nav-btn" onclick="chgMonth(-1)">&#8592;</button>
+      <div class="cal-title" id="calTitle"></div>
+      <button class="cal-nav-btn" onclick="chgMonth(1)">&#8594;</button>
+    </div>
+    <div class="cal-legend">
+      <div class="leg-item"><div class="leg-dot" style="background:#10b981"></div>Disciplined</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#ef4444"></div>Broke Rules</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#f59e0b"></div>Partial</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#64748b"></div>No Trade</div>
+    </div>
+    <div class="cal-gh">
+      <div class="cal-dlbl">SUN</div><div class="cal-dlbl">MON</div><div class="cal-dlbl">TUE</div>
+      <div class="cal-dlbl">WED</div><div class="cal-dlbl">THU</div><div class="cal-dlbl">FRI</div><div class="cal-dlbl">SAT</div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-sum" id="calSum"></div>
+  </div>
+</div>
+
+<!-- TAB: P&L -->
+<div class="tab-panel" id="tab-pnl">
+  <div class="content">
+    <div class="pnl-overview" id="pnlOverview"></div>
+    <div class="streak-box" id="streakBox" style="display:none">
+      <div class="streak-num-big" id="streakNum">0</div>
+      <div><div class="streak-info">🔥 Discipline Streak</div><div class="streak-sub">consecutive disciplined days</div></div>
+    </div>
+    <div class="pnl-chart-wrap">
+      <div class="pnl-chart-title">📊 Last 14 Days Daily P&amp;L</div>
+      <div class="chart-bars" id="chartBars"></div>
+    </div>
+    <div class="sec-card">
+      <div class="sec-hdr" style="background:rgba(16,185,129,.05)">
+        <div><div class="sec-title" style="color:#10b981">💰 Trade Log</div><div class="sec-sub">Tap any row to edit · Shows capital after each day</div></div>
+      </div>
+      <div class="pnl-log" id="pnlLog"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: JOURNAL -->
+<div class="tab-panel" id="tab-journal">
+  <div class="content">
+    <div class="jfilter">
+      <div class="jfbtn active" onclick="filterJ('all',this)">ALL</div>
+      <div class="jfbtn" onclick="filterJ('green',this)">✅ Disciplined</div>
+      <div class="jfbtn" onclick="filterJ('red',this)">❌ Broke Rules</div>
+      <div class="jfbtn" onclick="filterJ('yellow',this)">⚠️ Partial</div>
+      <div class="jfbtn" onclick="filterJ('noTrade',this)">⏸️ No Trade</div>
+    </div>
+    <div id="journalList"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg" onclick="closeOut(event)">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <div class="modal-ttl" id="mTitle"></div>
+    <div class="modal-stl" id="mSub"></div>
+    <div class="modal-cap-info" id="mCapInfo"></div>
+    <div class="m-sec">
+      <span class="m-lbl">📊 Day Status</span>
+      <div class="sbrow">
+        <div class="sbtn" id="sb-green" onclick="pickSt('green')">✅<br/>Disciplined</div>
+        <div class="sbtn" id="sb-red" onclick="pickSt('red')">❌<br/>Broke Rules</div>
+        <div class="sbtn" id="sb-yellow" onclick="pickSt('yellow')">⚠️<br/>Partial</div>
+        <div class="sbtn" id="sb-noTrade" onclick="pickSt('noTrade')">⏸️<br/>No Trade</div>
+      </div>
+    </div>
+    <div class="m-sec">
+      <span class="m-lbl">💰 P&amp;L Today (₹) — profit = positive, loss = negative</span>
+      <input class="m-inp" id="mPnl" type="number" placeholder="e.g. 2500 or -1500"/>
+    </div>
+    <div class="m-sec">
+      <span class="m-lbl">📋 Rules Followed</span>
+      <input class="m-inp" id="mRules" type="text" placeholder="e.g. 28 out of 30"/>
+    </div>
+    <div class="m-sec">
+      <span class="m-lbl">🔴 What Triggered Greed or Fear?</span>
+      <textarea class="m-ta" id="mGreed" placeholder="Be honest with yourself..."></textarea>
+    </div>
+    <div class="m-sec">
+      <span class="m-lbl">💡 What Will You Do Differently Tomorrow?</span>
+      <textarea class="m-ta" id="mImprove" placeholder="One specific improvement..."></textarea>
+    </div>
+    <div class="m-sec">
+      <span class="m-lbl">🌟 Overall Notes</span>
+      <textarea class="m-ta" id="mNotes" placeholder="Any other observations..."></textarea>
+    </div>
+    <button class="save-btn" onclick="saveEntry()">💾 SAVE ENTRY</button>
+    <button class="del-btn" id="delBtn" onclick="deleteEntry()">🗑️ Delete This Entry</button>
+  </div>
+</div>
+
+<script>
+// ===== CHECKLIST =====
+const SECTIONS=[
+  {id:"morning",title:"🌅 Morning Ritual",sub:"Before opening any chart",color:"#F59E0B",items:[
+    {id:"m1",t:"I have slept well and my mind is calm",c:false},
+    {id:"m2",t:"I am NOT trading to recover any past loss today",c:true},
+    {id:"m3",t:"I have eaten breakfast — no trading on empty stomach",c:false},
+    {id:"m4",t:"I have done 10 mins meditation or deep breathing",c:false},
+    {id:"m5",t:"My daily loss limit is ₹3,000 — I accept this fully",c:true},
+    {id:"m6",t:"My daily profit target is ₹2,000–₹3,000 — I will stop when hit",c:true},
+  ]},
+  {id:"market",title:"📊 Market Prep",sub:"Study before you trade",color:"#3B82F6",items:[
+    {id:"mk1",t:"Checked today's major news & events (RBI, FII, global markets)",c:false},
+    {id:"mk2",t:"I know today's Nifty/BankNifty support and resistance levels",c:false},
+    {id:"mk3",t:"Checked India VIX — suitable for option selling today?",c:true},
+    {id:"mk4",t:"Trade setup identified BEFORE market opens — not during",c:true},
+    {id:"mk5",t:"Will trade ONLY Nifty or BankNifty — no random stock options",c:false},
+  ]},
+  {id:"pretrade",title:"✍️ Pre-Trade Journal",sub:"Answer all 4 — or don't trade",color:"#8B5CF6",items:[
+    {id:"pt1",t:"Why am I entering this trade? (Written in journal)",c:true},
+    {id:"pt2",t:"Maximum loss I accept for this trade? (Written)",c:true},
+    {id:"pt3",t:"Exit plan for both profit and loss? (Written)",c:true},
+    {id:"pt4",t:"Am I trading with clear mind — NOT emotional or desperate?",c:true},
+  ]},
+  {id:"exec",title:"⚡ Execution Rules",sub:"Non-negotiable every trade",color:"#10B981",items:[
+    {id:"e1",t:"Using HEDGED strategy — no naked selling today",c:true},
+    {id:"e2",t:"Maximum 2 trades today — not more",c:true},
+    {id:"e3",t:"Stop loss SET in system before walking away from screen",c:true},
+    {id:"e4",t:"NOT chasing premium — will wait for my exact setup",c:false},
+    {id:"e5",t:"Will NOT average a losing position under any condition",c:true},
+  ]},
+  {id:"greed",title:"🔴 Greed Check",sub:"Sourav — read this slowly",color:"#EF4444",items:[
+    {id:"g1",t:"If I hit ₹3,000 loss today — close EVERYTHING immediately. No exceptions.",c:true},
+    {id:"g2",t:"If I hit profit target — I will STOP. Not 'just one more'.",c:true},
+    {id:"g3",t:"Will NOT check P&L every 2 minutes — it clouds judgment",c:false},
+    {id:"g4",t:"If urge to overtrade hits — 15 min timer, walk away",c:true},
+    {id:"g5",t:"₹70 lakhs was lost to greed. Today I choose discipline.",c:true},
+  ]},
+  {id:"evening",title:"🌙 Evening Review",sub:"After market — log in Journal tab",color:"#6366F1",items:[
+    {id:"ev1",t:"Written today's P&L in the P&L tab",c:false},
+    {id:"ev2",t:"Noted how many rules I followed today",c:false},
+    {id:"ev3",t:"Identified what triggered greed or fear today",c:false},
+    {id:"ev4",t:"Noted what I will do differently tomorrow",c:false},
+    {id:"ev5",t:"Proud of following the process — regardless of result",c:false},
+  ]}
+];
+
+const checked={};
+const today=new Date();
+let cY=today.getFullYear(), cM=today.getMonth();
+let mKey=null, mSt=null, curFilter="all";
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const SICON={green:"✅",red:"❌",yellow:"⚠️",noTrade:"⏸️"};
+const SLB={green:"Disciplined",red:"Broke Rules",yellow:"Partial",noTrade:"No Trade"};
+const SMAP={green:"sg",red:"sr",yellow:"sy",noTrade:"sn"};
+const JMAP={green:"g",red:"r",yellow:"y",noTrade:"n"};
+const DEFAULT_BASE=300000;
+
+// ===== STORAGE =====
+function getData(){try{return JSON.parse(localStorage.getItem("sj2")||"{}");}catch{return{};}}
+function saveData(d){localStorage.setItem("sj2",JSON.stringify(d));}
+function getBaseCap(){return parseFloat(localStorage.getItem("sj_base")||DEFAULT_BASE);}
+function saveBaseCap(v){localStorage.setItem("sj_base",v);}
+function dKey(y,m,d){return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
+function fmt(n){return "₹"+Math.abs(n).toLocaleString("en-IN");}
+function fmtSigned(n){return (n>=0?"+":"-")+"₹"+Math.abs(n).toLocaleString("en-IN");}
+
+// Compute total P&L from all entries
+function getTotalPnl(){
+  const data=getData();
+  return Object.values(data).reduce((s,e)=>s+(parseFloat(e.pnl)||0),0);
+}
+// Running capital after each day (sorted by date)
+function getCapitalCurve(){
+  const base=getBaseCap();
+  const data=getData();
+  const sorted=Object.entries(data).filter(([k,v])=>v.pnl!==undefined&&v.pnl!=="").sort((a,b)=>a[0].localeCompare(b[0]));
+  let running=base;
+  return sorted.map(([key,e])=>{
+    running+=parseFloat(e.pnl)||0;
+    return{key,pnl:parseFloat(e.pnl)||0,capital:running};
+  });
+}
+
+// ===== HEADER CAPITAL =====
+function updateHeaderCap(){
+  const base=getBaseCap();
+  const total=getTotalPnl();
+  const current=base+total;
+  const pct=((total/base)*100);
+  const isUp=total>=0;
+  document.getElementById("hdrBase").textContent=fmt(base);
+  document.getElementById("hdrCurrent").textContent=fmt(current);
+  document.getElementById("hdrCurrent").style.color=isUp?"#10b981":"#ef4444";
+  const pctEl=document.getElementById("hdrPct");
+  pctEl.textContent=(pct>=0?"+":"")+pct.toFixed(2)+"%";
+  pctEl.className="cap-pill-pct "+(pct>0?"pct-up":pct<0?"pct-dn":"pct-nt");
+}
+
+// ===== SET BASE CAPITAL =====
+function setBaseCap(){
+  const val=parseFloat(document.getElementById("baseCapInput").value);
+  if(!val||val<=0){alert("Please enter a valid capital amount!");return;}
+  saveBaseCap(val);
+  updateHeaderCap();
+  renderCapital();
+  renderPnl();
+  alert("✅ Base capital set to "+fmt(val));
+}
+
+// ===== CAPITAL TAB =====
+function renderCapital(){
+  const base=getBaseCap();
+  const total=getTotalPnl();
+  const current=base+total;
+  const pct=((total/base)*100);
+  const isUp=total>=0;
+  const data=getData();
+  const tradeDays=Object.values(data).filter(e=>e.pnl&&parseFloat(e.pnl)!==0).length;
+
+  // Set input placeholder
+  document.getElementById("baseCapInput").value=base;
+
+  // Overview
+  const capColor=isUp?"#10b981":"#ef4444";
+  const maxDrawdown=getMaxDrawdown(base);
+  document.getElementById("capOverview").innerHTML=`
+    <div class="cap-section-title">📊 CAPITAL OVERVIEW</div>
+    <div class="cap-grid">
+      <div class="cap-box">
+        <div class="cap-box-lbl">Base Capital</div>
+        <div class="cap-box-val" style="color:#8B5CF6">${fmt(base)}</div>
+        <div class="cap-box-sub">Starting amount</div>
+      </div>
+      <div class="cap-box">
+        <div class="cap-box-lbl">Current Capital</div>
+        <div class="cap-box-val" style="color:${capColor}">${fmt(current)}</div>
+        <div class="cap-box-sub">${fmtSigned(total)} total</div>
+      </div>
+      <div class="cap-box">
+        <div class="cap-box-lbl">Growth</div>
+        <div class="cap-box-val" style="color:${capColor}">${(pct>=0?"+":"")+pct.toFixed(2)}%</div>
+        <div class="cap-box-sub">Overall return</div>
+      </div>
+      <div class="cap-box">
+        <div class="cap-box-lbl">Max Drawdown</div>
+        <div class="cap-box-val" style="color:#ef4444">${fmt(maxDrawdown)}</div>
+        <div class="cap-box-sub">Largest dip from peak</div>
+      </div>
+    </div>
+    <div class="cap-progress-section">
+      <div class="cap-prog-row">
+        <span class="cap-prog-lbl">Capital deployed (${tradeDays} trade days logged)</span>
+        <span class="cap-prog-pct" style="color:${capColor}">${fmt(current)} / ${fmt(base)}</span>
+      </div>
+      <div class="cap-prog-bar">
+        <div class="cap-prog-fill" style="width:${Math.min(Math.abs(pct),100)}%;background:${capColor};"></div>
+      </div>
+      <div class="cap-prog-row" style="margin-top:-8px;">
+        <span class="cap-prog-lbl">Target growth (20% = ₹${(base*0.2).toLocaleString("en-IN")})</span>
+        <span class="cap-prog-pct" style="color:#8B5CF6">${Math.min((pct/20)*100,100).toFixed(0)}% of goal</span>
+      </div>
+      <div class="cap-prog-bar">
+        <div class="cap-prog-fill" style="width:${Math.min(Math.max((pct/20)*100,0),100)}%;background:#8B5CF6;"></div>
+      </div>
+    </div>`;
+
+  // Capital curve chart
+  const curve=getCapitalCurve();
+  if(!curve.length){
+    document.getElementById("capCurveChart").innerHTML=`<div style="color:#334155;font-size:12px;font-family:monospace;padding:20px;margin:auto;">No trade data yet. Log your daily P&L to see the curve.</div>`;
+    document.getElementById("capCurveStart").textContent="";
+    document.getElementById("capCurveEnd").textContent="";
+  } else {
+    const vals=curve.map(c=>c.capital);
+    const minV=Math.min(base,...vals);
+    const maxV=Math.max(base,...vals);
+    const range=maxV-minV||1;
+    const chartH=70;
+    let ch="";
+    // Add base as first bar
+    const allPts=[{key:"base",capital:base},...curve];
+    allPts.forEach((pt,i)=>{
+      const h=Math.max(Math.round(((pt.capital-minV)/range)*chartH),3);
+      const c=pt.capital>=base?"#10b981":"#ef4444";
+      ch+=`<div class="chc-bar" style="height:${h}px;background:${c};opacity:${i===0?.4:.8};" title="${pt.key}: ${fmt(pt.capital)}"></div>`;
+    });
+    document.getElementById("capCurveChart").innerHTML=ch;
+    document.getElementById("capCurveStart").textContent="Start: "+fmt(base);
+    document.getElementById("capCurveEnd").textContent="Now: "+fmt(curve[curve.length-1].capital);
+  }
+
+  // Monthly breakdown
+  const monthly={};
+  Object.entries(getData()).forEach(([key,e])=>{
+    const [y,m]=key.split("-");
+    const mk=`${y}-${m}`;
+    if(!monthly[mk])monthly[mk]={pnl:0,days:0,green:0,red:0};
+    monthly[mk].pnl+=parseFloat(e.pnl)||0;
+    if(e.pnl&&parseFloat(e.pnl)!==0)monthly[mk].days++;
+    if(e.status==="green")monthly[mk].green++;
+    if(e.status==="red")monthly[mk].red++;
+  });
+  const mKeys=Object.keys(monthly).sort((a,b)=>b.localeCompare(a));
+  if(!mKeys.length){
+    document.getElementById("monthlyBreakdown").innerHTML=`<div style="color:#334155;font-size:12px;font-family:monospace;padding:16px 0;">No monthly data yet.</div>`;
+  } else {
+    let runCap=base;
+    // build running capital per month
+    const mKeysAsc=Object.keys(monthly).sort();
+    const mRunning={};
+    mKeysAsc.forEach(mk=>{runCap+=monthly[mk].pnl;mRunning[mk]=runCap;});
+    document.getElementById("monthlyBreakdown").innerHTML=mKeys.map(mk=>{
+      const m=monthly[mk];
+      const [y,mo]=mk.split("-");
+      const mName=MONTHS[parseInt(mo)-1]+" "+y;
+      const c=m.pnl>=0?"#10b981":"#ef4444";
+      return `<div style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <div style="font-size:13px;font-weight:bold;color:#e2e8f0;">${mName}</div>
+          <div style="font-size:15px;font-weight:bold;color:${c};font-family:monospace;">${fmtSigned(m.pnl)}</div>
+        </div>
+        <div style="display:flex;gap:12px;font-size:11px;color:#64748b;font-family:monospace;flex-wrap:wrap;">
+          <span>Capital: <b style="color:#a78bfa;">${fmt(mRunning[mk])}</b></span>
+          <span>Trade Days: ${m.days}</span>
+          <span style="color:#10b981">✅ ${m.green}</span>
+          <span style="color:#ef4444">❌ ${m.red}</span>
+        </div>
+      </div>`;
+    }).join("");
+  }
+}
+
+function getMaxDrawdown(base){
+  const curve=getCapitalCurve();
+  if(!curve.length) return 0;
+  let peak=base, maxDD=0;
+  [{capital:base},...curve].forEach(pt=>{
+    if(pt.capital>peak)peak=pt.capital;
+    const dd=peak-pt.capital;
+    if(dd>maxDD)maxDD=dd;
+  });
+  return maxDD;
+}
+
+// ===== CHECKLIST =====
+function allItems(){return SECTIONS.flatMap(s=>s.items);}
+function critItems(){return SECTIONS.flatMap(s=>s.items.filter(i=>i.c));}
+function updateStats(){
+  const all=allItems(),crits=critItems();
+  const cc=all.filter(i=>checked[i.id]).length;
+  const crc=crits.filter(i=>checked[i.id]).length;
+  const tot=all.length,prog=Math.round((cc/tot)*100);
+  const allC=crc===crits.length;
+  document.getElementById("progNum").textContent=prog+"%";
+  document.getElementById("progNum").style.color=prog===100?"#10B981":"#F59E0B";
+  document.getElementById("critNum").textContent=crc+"/"+crits.length;
+  document.getElementById("critNum").style.color=allC?"#10B981":"#EF4444";
+  document.getElementById("totNum").textContent=cc+"/"+tot;
+  document.getElementById("pbarFill").style.width=prog+"%";
+  document.getElementById("critBox").className="sbox "+(allC?"cdone":"cpend");
+  document.getElementById("readyBanner").style.display=allC?"block":"none";
+  SECTIONS.forEach(s=>{
+    const done=s.items.filter(i=>checked[i.id]).length;
+    const b=document.getElementById("b-"+s.id),el=document.getElementById("s-"+s.id);
+    if(!b) return;
+    if(done===s.items.length){b.textContent="✓ DONE";b.className="sec-badge done";el.style.borderColor=s.color+"40";}
+    else{b.textContent=done+"/"+s.items.length;b.className="sec-badge";el.style.borderColor="rgba(255,255,255,.06)";}
+  });
+}
+function toggleItem(id,color){
+  checked[id]=!checked[id];
+  const el=document.getElementById("i-"+id),cb=document.getElementById("cb-"+id);
+  if(checked[id]){el.classList.add("checked");el.style.background=color+"08";cb.classList.add("checked");}
+  else{el.classList.remove("checked");el.style.background="transparent";cb.classList.remove("checked");}
+  updateStats();
+}
+function buildChecklist(){
+  let h="";
+  SECTIONS.forEach(s=>{
+    h+=`<div class="sec-card" id="s-${s.id}" style="--sc:${s.color}">
+      <div class="sec-hdr" style="background:linear-gradient(135deg,${s.color}08,transparent)">
+        <div><div class="sec-title" style="color:${s.color}">${s.title}</div><div class="sec-sub">${s.sub}</div></div>
+        <div class="sec-badge" id="b-${s.id}">0/${s.items.length}</div>
+      </div><div class="items">`;
+    s.items.forEach(item=>{
+      h+=`<div class="item" id="i-${item.id}" onclick="toggleItem('${item.id}','${s.color}')" style="--sc:${s.color}">
+        <div class="chkbox" id="cb-${item.id}" style="--sc:${s.color}">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div><div class="item-txt">${item.t}</div>${item.c?'<span class="crit-tag">● CRITICAL</span>':""}</div>
+      </div>`;
+    });
+    h+=`</div></div>`;
+  });
+  h+=`<div class="mantra"><div class="mantra-lbl">Sourav's Daily Mantra</div>
+    <div class="mantra-txt">"I am not here to recover ₹70 lakhs.<br/>I am here to prove I have changed.<br/><strong>Discipline today. Wealth tomorrow.</strong>"</div>
+    <div class="mantra-ft">🪐 Jupiter rewards patience. Your golden phase is coming.</div></div>
+  <div class="reset-wrap"><button class="reset-btn" onclick="resetAll()">🔄 RESET FOR NEW DAY</button></div>`;
+  document.getElementById("clContent").innerHTML=h;
+  updateStats();
+}
+function resetAll(){
+  if(!confirm("Reset all checkboxes for a new trading day?")) return;
+  Object.keys(checked).forEach(k=>delete checked[k]);
+  SECTIONS.forEach(s=>s.items.forEach(item=>{
+    const el=document.getElementById("i-"+item.id),cb=document.getElementById("cb-"+item.id);
+    if(el){el.classList.remove("checked");el.style.background="transparent";}
+    if(cb) cb.classList.remove("checked");
+  }));
+  updateStats();
+}
+
+// ===== CALENDAR =====
+function initCal(){renderCal();}
+function chgMonth(d){cM+=d;if(cM>11){cM=0;cY++;}if(cM<0){cM=11;cY--;}renderCal();}
+function renderCal(){
+  document.getElementById("calTitle").textContent=MONTHS[cM]+" "+cY;
+  const data=getData();
+  const fd=new Date(cY,cM,1).getDay();
+  const days=new Date(cY,cM+1,0).getDate();
+  let h="";
+  for(let i=0;i<fd;i++) h+=`<div class="cal-cell empty"></div>`;
+  for(let d=1;d<=days;d++){
+    const key=dKey(cY,cM,d);
+    const entry=data[key];
+    const isT=(d===today.getDate()&&cM===today.getMonth()&&cY===today.getFullYear());
+    const isFut=new Date(cY,cM,d)>today;
+    let cls="cal-cell";
+    let icon="";
+    if(isT)cls+=" today";
+    if(isFut)cls+=" future";
+    if(entry&&!isFut){cls+=" "+SMAP[entry.status];icon=SICON[entry.status]||"";}
+    h+=`<div class="${cls}" onclick="${isFut?"":"openModal('"+key+"')"}">
+      <div class="cal-num">${d}</div><div class="cal-icon">${icon}</div></div>`;
+  }
+  document.getElementById("calGrid").innerHTML=h;
+  renderCalSum(data,days);
+}
+function renderCalSum(data,days){
+  let g=0,r=0,y=0,n=0,pnl=0;
+  for(let d=1;d<=days;d++){
+    const e=data[dKey(cY,cM,d)];
+    if(!e) continue;
+    if(e.status==="green")g++;else if(e.status==="red")r++;else if(e.status==="yellow")y++;else if(e.status==="noTrade")n++;
+    if(e.pnl)pnl+=parseFloat(e.pnl)||0;
+  }
+  const pc=pnl>0?"#10b981":pnl<0?"#ef4444":"#64748b";
+  document.getElementById("calSum").innerHTML=`
+    <div class="csbox"><div class="csnum" style="color:#10b981">${g}</div><div class="cslbl">DISCIPLINED</div></div>
+    <div class="csbox"><div class="csnum" style="color:#ef4444">${r}</div><div class="cslbl">BROKE RULES</div></div>
+    <div class="csbox"><div class="csnum" style="color:#f59e0b">${y}</div><div class="cslbl">PARTIAL</div></div>
+    <div class="csbox"><div class="csnum" style="color:${pc}">${pnl>=0?"+":""}₹${Math.abs(pnl).toLocaleString("en-IN")}</div><div class="cslbl">MONTH P&L</div></div>`;
+}
+
+// ===== P&L TAB =====
+function renderPnl(){
+  const data=getData();
+  const base=getBaseCap();
+  const entries=Object.entries(data).filter(([k,v])=>v.pnl!==undefined&&v.pnl!=="").sort((a,b)=>b[0].localeCompare(a[0]));
+  let totalPnl=0,profitDays=0,lossDays=0,maxProfit=-Infinity,maxLoss=Infinity;
+  entries.forEach(([k,v])=>{
+    const p=parseFloat(v.pnl)||0;
+    if(p!==0){totalPnl+=p;if(p>0)profitDays++;if(p<0)lossDays++;if(p>maxProfit)maxProfit=p;if(p<maxLoss)maxLoss=p;}
+  });
+  if(maxProfit===-Infinity)maxProfit=0;if(maxLoss===Infinity)maxLoss=0;
+  const current=base+totalPnl;
+  const pct=((totalPnl/base)*100);
+  const totC=totalPnl>0?"#10b981":totalPnl<0?"#ef4444":"#64748b";
+  document.getElementById("pnlOverview").innerHTML=`
+    <div class="pnl-card"><div class="pnl-card-num" style="color:${totC}">${fmtSigned(totalPnl)}</div><div class="pnl-card-lbl">TOTAL P&L</div></div>
+    <div class="pnl-card"><div class="pnl-card-num" style="color:#8B5CF6">${fmt(current)}</div><div class="pnl-card-lbl">CURRENT CAPITAL</div></div>
+    <div class="pnl-card"><div class="pnl-card-num" style="color:${totC}">${(pct>=0?"+":"")+pct.toFixed(2)}%</div><div class="pnl-card-lbl">RETURN %</div></div>
+    <div class="pnl-card"><div class="pnl-card-num" style="color:#10b981">${profitDays}</div><div class="pnl-card-lbl">PROFIT DAYS</div></div>
+    <div class="pnl-card"><div class="pnl-card-num" style="color:#ef4444">${lossDays}</div><div class="pnl-card-lbl">LOSS DAYS</div></div>
+    <div class="pnl-card"><div class="pnl-card-num" style="color:#10b981">${fmt(maxProfit)}</div><div class="pnl-card-lbl">BEST DAY</div></div>`;
+  calcStreak();
+  // Chart
+  const last14=[];
+  for(let i=13;i>=0;i--){
+    const d=new Date(today);d.setDate(today.getDate()-i);
+    const key=dKey(d.getFullYear(),d.getMonth(),d.getDate());
+    const e=data[key];
+    last14.push({label:d.toLocaleDateString("en-IN",{day:"numeric",month:"short"}),pnl:e&&e.pnl?parseFloat(e.pnl)||0:null,key});
+  }
+  const maxAbs=Math.max(...last14.filter(x=>x.pnl!==null).map(x=>Math.abs(x.pnl)),1);
+  let ch="";
+  last14.forEach(item=>{
+    if(item.pnl===null){
+      ch+=`<div class="bar-wrap" onclick="openModal('${item.key}')"><div style="height:4px;background:rgba(255,255,255,.05);border-radius:3px;width:100%;"></div><div class="bar-lbl">${item.label.split(" ")[0]}</div></div>`;
+    } else {
+      const h=Math.max(Math.round((Math.abs(item.pnl)/maxAbs)*80),4);
+      const c=item.pnl>=0?"#10b981":"#ef4444";
+      const v=(item.pnl>=0?"+":"-")+(Math.abs(item.pnl)>=1000?(Math.abs(item.pnl)/1000).toFixed(1)+"k":Math.abs(item.pnl));
+      ch+=`<div class="bar-wrap" onclick="openModal('${item.key}')"><div class="bar-val" style="color:${c}">${v}</div><div class="bar-col" style="height:${h}px;background:${c};opacity:.8;"></div><div class="bar-lbl">${item.label.split(" ")[0]}</div></div>`;
+    }
+  });
+  document.getElementById("chartBars").innerHTML=ch;
+  // Trade log with running capital
+  if(!entries.length){
+    document.getElementById("pnlLog").innerHTML=`<div class="no-entries" style="padding:28px 16px;">No trades logged yet.<br/>Tap any calendar day to add your first entry.</div>`;
+    return;
+  }
+  // compute running capital per entry (ascending for calc, display descending)
+  const ascEntries=Object.entries(data).filter(([k,v])=>v.pnl!==undefined&&v.pnl!=="").sort((a,b)=>a[0].localeCompare(b[0]));
+  const runMap={};
+  let run=base;
+  ascEntries.forEach(([key,e])=>{run+=parseFloat(e.pnl)||0;runMap[key]=run;});
+  document.getElementById("pnlLog").innerHTML=entries.slice(0,40).map(([key,e])=>{
+    const [y,m,d]=key.split("-");
+    const dt=new Date(parseInt(y),parseInt(m)-1,parseInt(d));
+    const dStr=dt.toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short"});
+    const pnl=parseFloat(e.pnl)||0;
+    const pc=pnl>0?"p":pnl<0?"l":"z";
+    const ps=fmtSigned(pnl);
+    const capAfter=runMap[key]||base;
+    return `<div class="pnl-log-row" onclick="openModal('${key}')">
+      <div><div class="plr-date">${dStr}</div><div class="plr-status" style="color:${e.status==="green"?"#10b981":e.status==="red"?"#ef4444":e.status==="yellow"?"#f59e0b":"#64748b"}">${SICON[e.status]||""} ${SLB[e.status]||""}</div></div>
+      <div class="plr-right"><div class="plr-amount ${pc}">${ps}</div><div class="plr-cap">Capital: ${fmt(capAfter)}</div></div></div>`;
+  }).join("");
+}
+
+function calcStreak(){
+  const data=getData();
+  let streak=0;
+  const cur=new Date(today);
+  for(let i=0;i<90;i++){
+    const k=dKey(cur.getFullYear(),cur.getMonth(),cur.getDate());
+    if(data[k]&&data[k].status==="green"){streak++;}else if(i>0){break;}
+    cur.setDate(cur.getDate()-1);
+  }
+  if(streak>0){document.getElementById("streakNum").textContent=streak;document.getElementById("streakBox").style.display="flex";}
+  else{document.getElementById("streakBox").style.display="none";}
+}
+
+// ===== MODAL =====
+function openModal(key){
+  mKey=key;mSt=null;
+  const data=getData(),entry=data[key]||{};
+  const [y,m,d]=key.split("-");
+  const dt=new Date(parseInt(y),parseInt(m)-1,parseInt(d));
+  document.getElementById("mTitle").textContent="📅 "+dt.toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  document.getElementById("mSub").textContent=entry.status?"Entry exists — update or delete below.":"New entry — log your trading day.";
+  // Capital info
+  const base=getBaseCap();
+  const total=getTotalPnl();
+  const current=base+total;
+  const entryPnl=parseFloat(entry.pnl)||0;
+  const capWithoutEntry=current-entryPnl;
+  document.getElementById("mCapInfo").innerHTML=`Base: <b>${fmt(base)}</b> &nbsp;|&nbsp; Current Capital: <b style="color:${current>=base?"#10b981":"#ef4444"}">${fmt(current)}</b>`;
+  document.getElementById("mPnl").value=entry.pnl||"";
+  document.getElementById("mRules").value=entry.rules||"";
+  document.getElementById("mGreed").value=entry.greed||"";
+  document.getElementById("mImprove").value=entry.improve||"";
+  document.getElementById("mNotes").value=entry.notes||"";
+  document.getElementById("delBtn").style.display=entry.status?"block":"none";
+  document.getElementById("sb-green").className="sbtn"+(entry.status==="green"?" sg":"");
+  document.getElementById("sb-red").className="sbtn"+(entry.status==="red"?" sr":"");
+  document.getElementById("sb-yellow").className="sbtn"+(entry.status==="yellow"?" sy":"");
+  document.getElementById("sb-noTrade").className="sbtn"+(entry.status==="noTrade"?" sn":"");
+  if(entry.status)mSt=entry.status;
+  document.getElementById("modalBg").classList.add("open");
+}
+function closeModal(){document.getElementById("modalBg").classList.remove("open");mKey=null;mSt=null;}
+function closeOut(e){if(e.target===document.getElementById("modalBg"))closeModal();}
+function pickSt(s){
+  mSt=s;
+  document.getElementById("sb-green").className="sbtn"+(s==="green"?" sg":"");
+  document.getElementById("sb-red").className="sbtn"+(s==="red"?" sr":"");
+  document.getElementById("sb-yellow").className="sbtn"+(s==="yellow"?" sy":"");
+  document.getElementById("sb-noTrade").className="sbtn"+(s==="noTrade"?" sn":"");
+}
+function saveEntry(){
+  if(!mSt){alert("Please select a Day Status!");return;}
+  const data=getData();
+  data[mKey]={status:mSt,pnl:document.getElementById("mPnl").value,rules:document.getElementById("mRules").value,greed:document.getElementById("mGreed").value,improve:document.getElementById("mImprove").value,notes:document.getElementById("mNotes").value,savedAt:new Date().toISOString()};
+  saveData(data);closeModal();
+  updateHeaderCap();renderCal();renderJournal(curFilter);renderPnl();
+}
+function deleteEntry(){
+  if(!confirm("Delete this entry?"))return;
+  const data=getData();delete data[mKey];saveData(data);
+  closeModal();updateHeaderCap();renderCal();renderJournal(curFilter);renderPnl();
+}
+
+// ===== JOURNAL =====
+function filterJ(f,el){
+  curFilter=f;
+  document.querySelectorAll(".jfbtn").forEach(b=>b.classList.remove("active"));
+  el.classList.add("active");renderJournal(f);
+}
+function renderJournal(filter){
+  const data=getData();
+  const base=getBaseCap();
+  const entries=Object.entries(data).filter(([k,v])=>filter==="all"||v.status===filter).sort((a,b)=>b[0].localeCompare(a[0]));
+  if(!entries.length){document.getElementById("journalList").innerHTML=`<div class="no-entries">📓 No entries yet.<br/>Tap any past day on the Calendar to log your review.</div>`;return;}
+  // running capital map
+  const ascEntries=Object.entries(data).filter(([k,v])=>v.pnl!==undefined&&v.pnl!=="").sort((a,b)=>a[0].localeCompare(b[0]));
+  const runMap={};let run=base;
+  ascEntries.forEach(([key,e])=>{run+=parseFloat(e.pnl)||0;runMap[key]=run;});
+  document.getElementById("journalList").innerHTML=entries.map(([key,e])=>{
+    const [y,m,d]=key.split("-");
+    const dt=new Date(parseInt(y),parseInt(m)-1,parseInt(d));
+    const dStr=dt.toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
+    const pnl=parseFloat(e.pnl)||0;
+    const pc=pnl>0?"p":pnl<0?"l":"z";
+    const ps=e.pnl?fmtSigned(pnl):"No P&L logged";
+    const jc=JMAP[e.status]||"n";
+    const capAfter=runMap[key];
+    const preview=e.greed||e.improve||e.notes||"";
+    return `<div class="jentry ${jc}" onclick="openModal('${key}')">
+      <div class="je-top"><div class="je-date">${dStr}</div><div class="je-badge ${jc}">${SICON[e.status]} ${SLB[e.status]}</div></div>
+      <div class="je-pnl ${pc}">${ps}</div>
+      ${capAfter!==undefined?`<div class="je-cap">Capital after: ${fmt(capAfter)}</div>`:""}
+      ${preview?`<div class="je-prev">${preview}</div>`:""}
+    </div>`;
+  }).join("");
+}
+
+// ===== TABS =====
+function switchTab(tab,el){
+  document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  document.getElementById("tab-"+tab).classList.add("active");
+  el.classList.add("active");
+  if(tab==="capital")renderCapital();
+  if(tab==="calendar")renderCal();
+  if(tab==="pnl")renderPnl();
+  if(tab==="journal")renderJournal(curFilter);
+}
+
+// ===== INIT =====
+document.getElementById("dateDisplay").textContent=today.toLocaleDateString("en-IN",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+buildChecklist();
+initCal();
+updateHeaderCap();
+</script>
+</body>
+</html>
+    
